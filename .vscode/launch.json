@@ -1,0 +1,22 @@
+{
+  "configurations": [
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:template-fluent-postgres-leaf}",
+      "name": "Debug TemplateFluentPostgresLeaf",
+      "program": "${workspaceFolder:template-fluent-postgres-leaf}/.build/debug/TemplateFluentPostgresLeaf",
+      "preLaunchTask": "swift: Build Debug TemplateFluentPostgresLeaf"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:template-fluent-postgres-leaf}",
+      "name": "Release TemplateFluentPostgresLeaf",
+      "program": "${workspaceFolder:template-fluent-postgres-leaf}/.build/release/TemplateFluentPostgresLeaf",
+      "preLaunchTask": "swift: Build Release TemplateFluentPostgresLeaf"
+    }
+  ]
+}
