@@ -5,6 +5,7 @@ import Vapor
 
 private enum AuthMiddlewareError: Error {
   case authNotFound
+  case notAuthorized
 }
 
 /// Middleware that authenticates requests based on the presence of a bearer token or basic auth credentials in the request headers.
@@ -60,8 +61,10 @@ struct AuthMiddleware: ServerMiddleware {
       }
     } catch AuthMiddlewareError.authNotFound {
       guard openOperationIDs.union(basicOperationIDs).contains(operationID) else {
-        throw Abort(.unauthorized)
+        return unauthorizedResponse()
       }
+    } catch AuthMiddlewareError.notAuthorized {
+      return unauthorizedResponse()
     }
 
     // Try basic auth next.
@@ -72,8 +75,10 @@ struct AuthMiddleware: ServerMiddleware {
       }
     } catch AuthMiddlewareError.authNotFound {
       guard openOperationIDs.contains(operationID) else {
-        throw Abort(.unauthorized)
+        return unauthorizedResponse()
       }
+    } catch AuthMiddlewareError.notAuthorized {
+      return unauthorizedResponse()
     }
 
     return try await next(request, body, metadata)
@@ -92,12 +97,12 @@ struct AuthMiddleware: ServerMiddleware {
       .first()
 
     guard let token else {
-      throw Abort(.unauthorized)
+      throw AuthMiddlewareError.notAuthorized
     }
 
     guard token.isValid else {
       try await token.delete(on: app.db)
-      throw Abort(.unauthorized)
+      throw AuthMiddlewareError.notAuthorized
     }
 
     return try await token.$user.get(on: app.db)
@@ -117,13 +122,17 @@ struct AuthMiddleware: ServerMiddleware {
       .first()
 
     guard let user else {
-      throw Abort(.unauthorized)
+      throw AuthMiddlewareError.notAuthorized
     }
 
     guard try user.verify(password: password) else {
-      throw Abort(.unauthorized)
+      throw AuthMiddlewareError.notAuthorized
     }
 
     return user
+  }
+
+  func unauthorizedResponse() -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
+    (HTTPResponse(status: .unauthorized), nil)
   }
 }

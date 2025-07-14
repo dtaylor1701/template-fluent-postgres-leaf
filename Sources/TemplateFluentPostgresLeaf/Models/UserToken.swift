@@ -25,8 +25,8 @@ final class UserToken: Model, @unchecked Sendable {
         self.id = id
         self.value = value
         self.$user.id = userID
-        // set token to expire after 5 hours
-        self.expiresAt = Date.init(timeInterval: 60 * 60 * 5, since: .init())
+        // Set token to expire after 1 week.
+        self.expiresAt = Date.init(timeInterval: 60 * 60 * 24 * 7, since: .init())
     }
 }
 

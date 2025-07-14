@@ -6,6 +6,10 @@ import OpenAPIRuntime
 import OpenAPIVapor
 import Vapor
 
+#if DEBUG
+    import FluentSQLiteDriver
+#endif
+
 // configures your application
 public func configure(_ app: Application) async throws {
     // uncomment to serve files from /Public folder
@@ -25,19 +29,23 @@ public func configure(_ app: Application) async throws {
         serverURL: Servers.Server1.url(),
         middlewares: apiMiddleware(app))
 
-    app.databases.use(
-        DatabaseConfigurationFactory.postgres(
-            configuration: .init(
-                hostname: Environment.get("DATABASE_HOST") ?? "localhost",
-                port: Environment.get("DATABASE_PORT").flatMap(Int.init(_:))
-                    ?? SQLPostgresConfiguration.ianaPortNumber,
-                username: Environment.get("DATABASE_USERNAME") ?? "vapor_username",
-                password: Environment.get("DATABASE_PASSWORD") ?? "vapor_password",
-                database: Environment.get("DATABASE_NAME") ?? "vapor_database",
-                tls: .prefer(try .init(configuration: .clientDefault)))
-        ), as: .psql)
+    // app.databases.use(
+    //     DatabaseConfigurationFactory.postgres(
+    //         configuration: .init(
+    //             hostname: Environment.get("DATABASE_HOST") ?? "localhost",
+    //             port: Environment.get("DATABASE_PORT").flatMap(Int.init(_:))
+    //                 ?? SQLPostgresConfiguration.ianaPortNumber,
+    //             username: Environment.get("DATABASE_USERNAME") ?? "vapor_username",
+    //             password: Environment.get("DATABASE_PASSWORD") ?? "vapor_password",
+    //             database: Environment.get("DATABASE_NAME") ?? "vapor_database",
+    //             tls: .prefer(try .init(configuration: .clientDefault)))
+    //     ), as: .psql)
+
+    app.databases.use(.sqlite(.memory), as: .sqlite)
 
     addMigrations(app)
+
+    try await app.autoMigrate()
 
     app.views.use(.leaf)
 

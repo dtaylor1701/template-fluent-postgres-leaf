@@ -29,6 +29,14 @@ struct AuthTests {
           )
           .value
           #expect(responseToken?.isEmpty == false)
+          do {
+            let savedToken = try await UserToken.query(on: app.db)
+              .filter(\.$value == (responseToken ?? ""))
+              .first()
+            #expect(savedToken != nil)
+          } catch {
+            #expect(Bool(false), "Failed to retrieve token from database.")
+          }
         })
     }
   }
